@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  email     String?
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Employee {
+  id        Int      @id @default(autoincrement())
+  name      String
+  position  String
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  attendance Attendance[]
+  expenses   Expense[]
+
+  @@map("employees")
+}
+
+model Attendance {
+  id         Int      @id @default(autoincrement())
+  employeeId Int      @map("employee_id")
+  date       DateTime @db.Date
+  present    Boolean
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@map("attendance")
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  employeeId  Int      @map("employee_id")
+  date        DateTime @db.Date
+  amount      Decimal  @db.Decimal(10, 2)
+  description String
+  category    String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
+}
